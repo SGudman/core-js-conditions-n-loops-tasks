@@ -368,8 +368,46 @@ function getBalanceIndex(arr) {
  *          [10, 9,  8,  7]
  *        ]
  */
-function getSpiralMatrix(/* size */) {
-  throw new Error('Not implemented');
+function getSpiralMatrix(size) {
+  const matrix = [];
+
+  for (let row = 0; row < size; row += 1) {
+    matrix[row] = [];
+  }
+
+  let top = 0;
+  let bottom = size - 1;
+  let left = 0;
+  let right = size - 1;
+  let number = 1;
+
+  while (top <= bottom && left <= right) {
+    for (let column = left; column <= right; column += 1) {
+      matrix[top][column] = number;
+      number += 1;
+    }
+    top += 1;
+
+    for (let row = top; row <= bottom; row += 1) {
+      matrix[row][right] = number;
+      number += 1;
+    }
+    right -= 1;
+
+    for (let column = right; column >= left && top <= bottom; column -= 1) {
+      matrix[bottom][column] = number;
+      number += 1;
+    }
+    bottom -= 1;
+
+    for (let row = bottom; row >= top && left <= right; row -= 1) {
+      matrix[row][left] = number;
+      number += 1;
+    }
+    left += 1;
+  }
+
+  return matrix;
 }
 
 /**
@@ -387,8 +425,24 @@ function getSpiralMatrix(/* size */) {
  *    [7, 8, 9]         [9, 6, 3]
  *  ]                 ]
  */
-function rotateMatrix(/* matrix */) {
-  throw new Error('Not implemented');
+function rotateMatrix(matrix) {
+  const result = matrix;
+  const size = result.length;
+
+  for (let layer = 0; layer < size / 2; layer += 1) {
+    const last = size - 1 - layer;
+
+    for (let index = layer; index < last; index += 1) {
+      const offset = index - layer;
+      const top = result[layer][index];
+      result[layer][index] = result[last - offset][layer];
+      result[last - offset][layer] = result[last][last - offset];
+      result[last][last - offset] = result[index][last];
+      result[index][last] = top;
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -405,8 +459,26 @@ function rotateMatrix(/* matrix */) {
  *  [2, 9, 5, 9]    => [2, 5, 9, 9]
  *  [-2, 9, 5, -3]  => [-3, -2, 5, 9]
  */
-function sortByAsc(/* arr */) {
-  throw new Error('Not implemented');
+function sortByAsc(arr) {
+  const result = arr;
+
+  for (let index = 0; index < result.length; index += 1) {
+    let minimumIndex = index;
+
+    for (let candidate = index + 1; candidate < result.length; candidate += 1) {
+      if (result[candidate] < result[minimumIndex]) {
+        minimumIndex = candidate;
+      }
+    }
+
+    if (minimumIndex !== index) {
+      const currentValue = result[index];
+      result[index] = result[minimumIndex];
+      result[minimumIndex] = currentValue;
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -426,8 +498,45 @@ function sortByAsc(/* arr */) {
  *  '012345', 3 => '024135' => '043215' => '031425'
  *  'qwerty', 3 => 'qetwry' => 'qtrewy' => 'qrwtey'
  */
-function shuffleChar(/* str, iterations */) {
-  throw new Error('Not implemented');
+function shuffleChar(str, iterations) {
+  const seenIterations = new Map();
+  let current = str;
+  let currentIteration = 0;
+
+  while (currentIteration < iterations) {
+    let skippedCycles = false;
+
+    if (seenIterations.has(current)) {
+      const cycleLength = currentIteration - seenIterations.get(current);
+      const cyclesToSkip = Math.floor(
+        (iterations - currentIteration) / cycleLength
+      );
+
+      if (cyclesToSkip > 0) {
+        currentIteration += cyclesToSkip * cycleLength;
+        skippedCycles = true;
+      }
+    } else {
+      seenIterations.set(current, currentIteration);
+    }
+
+    if (!skippedCycles) {
+      let next = '';
+
+      for (let index = 0; index < current.length; index += 2) {
+        next += current[index];
+      }
+
+      for (let index = 1; index < current.length; index += 2) {
+        next += current[index];
+      }
+
+      current = next;
+      currentIteration += 1;
+    }
+  }
+
+  return current;
 }
 
 /**
@@ -448,8 +557,67 @@ function shuffleChar(/* str, iterations */) {
  * 321321   => 322113
  *
  */
-function getNearestBigger(/* number */) {
-  throw new Error('Not implemented');
+function getNearestBigger(number) {
+  const digits = [];
+  let remaining = number;
+  let digitCount = 0;
+
+  while (remaining >= 1) {
+    const digit = remaining % 10;
+    digits[digitCount] = digit;
+    digitCount += 1;
+    remaining = (remaining - digit) / 10;
+  }
+
+  let pivotIndex = -1;
+
+  for (let index = 1; index < digitCount; index += 1) {
+    if (digits[index] < digits[index - 1]) {
+      pivotIndex = index;
+      break;
+    }
+  }
+
+  if (pivotIndex === -1) {
+    return number;
+  }
+
+  let successorIndex = -1;
+
+  for (let index = 0; index < pivotIndex; index += 1) {
+    if (
+      digits[index] > digits[pivotIndex] &&
+      (successorIndex === -1 || digits[index] < digits[successorIndex])
+    ) {
+      successorIndex = index;
+    }
+  }
+
+  const pivot = digits[pivotIndex];
+  digits[pivotIndex] = digits[successorIndex];
+  digits[successorIndex] = pivot;
+
+  for (let index = 0; index < pivotIndex; index += 1) {
+    let largestIndex = index;
+
+    for (let candidate = index + 1; candidate < pivotIndex; candidate += 1) {
+      if (digits[candidate] > digits[largestIndex]) {
+        largestIndex = candidate;
+      }
+    }
+
+    const current = digits[index];
+    digits[index] = digits[largestIndex];
+    digits[largestIndex] = current;
+  }
+
+  let result = 0;
+
+  for (let index = digitCount - 1; index >= 0; index -= 1) {
+    result = result * 10 + digits[index];
+  }
+
+  return result;
 }
 
 module.exports = {
